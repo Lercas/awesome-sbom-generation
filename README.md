@@ -28,6 +28,7 @@
 ## Введение
 
 CycloneDX - это легковесный стандарт SBOM, предназначенный для использования в контексте безопасности приложений и анализа компонентов цепочки поставок. В этом руководстве показано, как использовать плагины CycloneDX для генерации SBOM в различных программных средах.
+> :warning: Обратите внимание, что некоторые инструменты анализа SBOM файлов имеют привязку к конкретной версии спецификации CycloneDX (сейчас рекомендуем пробовать версию 1.4 ```--spec-version 1.4```
 
 ## Установка
 
@@ -302,6 +303,36 @@ sbom_generation:
   artifacts:
     paths:
       - sbom.json
+```
+
+#### Java (с использованием докер образа cdxgen, ничего дополнительно устанавливать не надо)
+
+```yaml
+stages:
+  - sbom
+
+cdx-sbom:
+  stage: sbom
+  allow_failure: true
+  variables:
+    GIT_STRATEGY: clone
+    # Задаём версию формата отчёта, большинство инструментов поддерживают 1.4
+    CDX_SPEC_VERSION: 1.4
+    REPORT_NAME: "${CI_PROJECT_NAME}_CDXV_${CDX_SPEC_VERSION}.json"
+  image:
+    name: ghcr.io/cyclonedx/cdxgen:latest
+    entrypoint: [""]
+  script:
+    - |
+        node /opt/cdxgen/bin/cdxgen.js \
+        -t java \
+        --spec-version "${CDX_SPEC_VERSION}" \
+        -r . \
+        -o "${REPORT_NAME}"
+  artifacts:
+    when: always
+    paths:
+      - "${REPORT_NAME}"
 ```
 
 # To Do 
